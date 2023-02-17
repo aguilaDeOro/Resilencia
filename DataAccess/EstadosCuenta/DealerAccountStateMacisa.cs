@@ -28,6 +28,7 @@
             {
                 var resultGetAccountStatesList = await base.GetAsync<MacisaEECCResponseDto>(
                     API.Macisa.GetAccountStates(base._urlPrefix, queryCreditLine.RucCliente));
+
                 var accountStates = Mapper.Map<DTOEstadoCuenta>(resultGetAccountStatesList);
 
                 return new AccountStateResponse<DTOEstadoCuentaRespuesta>(true,
