@@ -1,0 +1,15 @@
+﻿namespace BusinessLogic.EstadosCuenta
+{
+    using DataAccess.Dtos;
+    using DataAccess.SemillaTrabajo;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    public interface IAccountStateBusinessLogic
+    {
+        Task<AccountStateResponse<DTOEstadoCuentaRespuesta>> GetAsync(DTOConsultaEstadoCuenta criteria);
+    }
+}
