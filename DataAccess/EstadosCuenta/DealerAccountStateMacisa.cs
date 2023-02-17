@@ -3,6 +3,7 @@
     using AutoMapper;
     using DataAccess.Dtos;
     using DataAccess.SemillaTrabajo;
+    using Polly;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -26,8 +27,28 @@
         {
             try
             {
-                var resultGetAccountStatesList = await base.GetAsync<MacisaEECCResponseDto>(
-                    API.Macisa.GetAccountStates(base._urlPrefix, queryCreditLine.RucCliente));
+                MacisaEECCResponseDto resultGetAccountStatesList = new MacisaEECCResponseDto();
+                var retries = 1;
+
+                var policyResult = await Policy.Handle<Exception>()
+                    .WaitAndRetryAsync(
+                        retryCount: 3,
+                        sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                        onRetry: (exception, timeSpan, context) =>
+                        {
+                            Console.WriteLine($"Exception: {exception.Message}");
+                            Console.WriteLine($"Retry: {retries}");
+                            retries++;
+                        }
+                    ).ExecuteAndCaptureAsync(async () =>
+                    {
+                        resultGetAccountStatesList = await base.GetAsync<MacisaEECCResponseDto>(
+                            API.Macisa.GetAccountStates(base._urlPrefix, queryCreditLine.RucCliente));
+                    });
+
+                Console.WriteLine($"Result: {policyResult.Outcome.ToString()}");
+
+
 
                 var accountStates = Mapper.Map<DTOEstadoCuenta>(resultGetAccountStatesList);
 
