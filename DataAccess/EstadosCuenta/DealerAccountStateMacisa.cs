@@ -30,14 +30,15 @@
                 MacisaEECCResponseDto resultGetAccountStatesList = new MacisaEECCResponseDto();
                 var retries = 1;
 
-                var policyResult = await Policy.Handle<Exception>()
+                var policyResult = await Policy.Handle<HttpRequestException>()
                     .WaitAndRetryAsync(
                         retryCount: 3,
                         sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                         onRetry: (exception, timeSpan, context) =>
                         {
-                            Console.WriteLine($"Exception: {exception.Message}");
-                            Console.WriteLine($"Retry: {retries}");
+                            _log.EscribeLog(Log.CONST_APP_ERRLOG, typeof(DealerAccountStateMacisa).Name + "." + MethodBase.GetCurrentMethod().Name, $"Excepción de intento consultando EECC Macisa: {exception.Message}");
+                            _log.EscribeLog(Log.CONST_APP_ERRLOG, typeof(DealerAccountStateMacisa).Name + "." + MethodBase.GetCurrentMethod().Name, $"Reintento de consultar EECC: {retries}");
+
                             retries++;
                         }
                     ).ExecuteAndCaptureAsync(async () =>
@@ -46,8 +47,9 @@
                             API.Macisa.GetAccountStates(base._urlPrefix, queryCreditLine.RucCliente));
                     });
 
-                Console.WriteLine($"Result: {policyResult.Outcome.ToString()}");
 
+                if (policyResult.Outcome == OutcomeType.Failure)
+                    throw new Exception(policyResult.FinalException.ToString(), policyResult.FinalException);
 
 
                 var accountStates = Mapper.Map<DTOEstadoCuenta>(resultGetAccountStatesList);
@@ -66,8 +68,8 @@
             }
             catch (Exception ex)
             {
-                _log.EscribeLog(Log.CONST_APP_ERRLOG, MethodBase.GetCurrentMethod().Name,
-                    $"{string.Format(Constantes.ERROR_QUERING_EECC, "Macisa")} : {ex.Message}");
+                _log.EscribeLog(Log.CONST_APP_ERRLOG, typeof(DealerAccountStateMacisa).Name + "." + MethodBase.GetCurrentMethod().Name,
+                    $"{string.Format(Constantes.ERROR_QUERING_EECC, "Macisa")} : {ex}");
 
                 return new AccountStateResponse<DTOEstadoCuentaRespuesta>(false,
                     new DTOEstadoCuentaRespuesta()
