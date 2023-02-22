@@ -5,6 +5,7 @@ namespace DataAccess.SemillaTrabajo
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Security.Principal;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -83,6 +84,13 @@ namespace DataAccess.SemillaTrabajo
         public const string SUCCESS_QUERING_LINECREDIT_AND_ACCOUNTSTATES = "Éxito al consultar la linea de crédito y el estados de cuenta {0}";
         public const string ERROR_QUERING_LINECREDIT_AND_ACCOUNTSTATES = "Error al consultar la linea de crédito y el estados de cuenta {0}";
         public const string ERROR_QUERING_LINECREDIT_OR_ACCOUNTSTATES = "Error al consultar la linea de crédito o el estados de cuenta {0}";
+
+        public const string EXCEPCION_INTENTO_CONSULTA_EECC = "Excepción de intento consultando EECC {0}: {1}";
+        public const string CANT_REINTENTOS_CONSULTA_EECC = "Reintento de consultar EECC {0}: {1}";
+
+        public const string DEALER_MACISA = "Macisa";
+
+        public const string DETAIL_METHOD_GET_ACCOUNT_STATES = "consultando EECC {0}";
         #endregion
     }
 }

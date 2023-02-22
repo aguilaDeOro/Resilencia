@@ -19,39 +19,19 @@
     {
         private readonly ILog _log;
 
-        public DealerAccountStateMacisa(ILog logger, HttpClient httpClient, string urlPrefix)
-            : base(httpClient, urlPrefix) => _log = logger;
+
+        public DealerAccountStateMacisa(ILog logger, HttpClient httpClient, string urlPrefix, 
+                                        int retryCount, int sleepDurationBasePow)
+            : base(logger, httpClient, urlPrefix, retryCount, sleepDurationBasePow) => this._log = logger;
 
 
         public async Task<AccountStateResponse<DTOEstadoCuentaRespuesta>> GetAccountStatesList(DTOConsultaEstadoCuenta queryCreditLine)
         {
             try
             {
-                MacisaEECCResponseDto resultGetAccountStatesList = new MacisaEECCResponseDto();
-                var retries = 1;
-
-                var policyResult = await Policy.Handle<HttpRequestException>()
-                    .WaitAndRetryAsync(
-                        retryCount: 3,
-                        sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
-                        onRetry: (exception, timeSpan, context) =>
-                        {
-                            _log.EscribeLog(Log.CONST_APP_ERRLOG, typeof(DealerAccountStateMacisa).Name + "." + MethodBase.GetCurrentMethod().Name, $"Excepción de intento consultando EECC Macisa: {exception.Message}");
-                            _log.EscribeLog(Log.CONST_APP_ERRLOG, typeof(DealerAccountStateMacisa).Name + "." + MethodBase.GetCurrentMethod().Name, $"Reintento de consultar EECC: {retries}");
-
-                            retries++;
-                        }
-                    ).ExecuteAndCaptureAsync(async () =>
-                    {
-                        resultGetAccountStatesList = await base.GetAsync<MacisaEECCResponseDto>(
-                            API.Macisa.GetAccountStates(base._urlPrefix, queryCreditLine.RucCliente));
-                    });
-
-
-                if (policyResult.Outcome == OutcomeType.Failure)
-                    throw new Exception(policyResult.FinalException.ToString(), policyResult.FinalException);
-
-
+                var resultGetAccountStatesList = await base.GetAsync<MacisaEECCResponseDto>(
+                    API.Macisa.GetAccountStates(base._urlPrefix, queryCreditLine.RucCliente),
+                    string.Format(Constantes.DETAIL_METHOD_GET_ACCOUNT_STATES, Constantes.DEALER_MACISA));
                 var accountStates = Mapper.Map<DTOEstadoCuenta>(resultGetAccountStatesList);
 
                 return new AccountStateResponse<DTOEstadoCuentaRespuesta>(true,

@@ -1,5 +1,6 @@
 ﻿using BusinessLogic.EstadosCuenta;
 using DataAccess.EstadosCuenta;
+using DataAccess.SemillaTrabajo;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -25,7 +26,10 @@ namespace API.PruebasPolly.NF452.Configuracion
             HttpClient httpClient = new HttpClient();
 
             container.RegisterType<IDealerAccountStateMacisa, DealerAccountStateMacisa>
-                    (new InjectionConstructor(container.Resolve<ILog>(), httpClient, ConfigurationManager.AppSettings.Get("Serv_Estado_Cuenta_Macisa"))); ;
+                    (new InjectionConstructor(container.Resolve<ILog>(), httpClient,
+                            ConfigurationManager.AppSettings.Get("Serv_Estado_Cuenta_Macisa"),
+                            Convert.ToInt32(ConfigurationManager.AppSettings.Get("RetryCount")),
+                            Convert.ToInt32(ConfigurationManager.AppSettings.Get("SleepDurationBasePow"))));
             container.RegisterType<IAccountStateMacisa, AccountStateMacisa>();
             container.RegisterType<IAccountStateBusinessLogic, AccountStateBusinessLogic>();
 
